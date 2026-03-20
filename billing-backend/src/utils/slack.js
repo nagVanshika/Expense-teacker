@@ -2,24 +2,35 @@ const axios = require('axios');
 const logger = require('../config/logger');
 
 /**
- * Sends a Slack message to a given channel with expense details.
- * 
- * @param {string} expenseId - The ID of the expense.
- * @param {string} reason - The reason/name for the expense.
- * @param {string} amount - The amount of the expense.
- * @param {string} channel - Slack channel to send the message to.
- * @param {string} type - Type of message.
+ * Sends a Slack message to a given channel with expense or collection details.
  */
-const sendSlackNotification = async ({ expense_id, reason, amount, channel, type }) => {
+const sendSlackNotification = async ({ 
+    expense_id, 
+    reason, 
+    amount, 
+    channel, 
+    type,
+    categoryName,
+    paidBy,
+    customerName
+}) => {
     const url = process.env.SLACK_MESSAGE_URL;
     const headers = {
         Authorization: `Bearer ${process.env.SLACK_SECRET}`,
         'Content-Type': 'application/json',
     };
 
-    const text = type === 'full_message' 
-        ? reason 
-        : `Hello @here, a new expense has been added! \n*ID:* ${expense_id}\n*Reason:* ${reason}\n*Amount:* ₹${amount}`;
+    let text = '';
+    if (type === 'full_message') {
+        text = reason;
+    } else if (type === 'Collection') {
+        text = `Hello @here, a new collection has been added! \n*Customer:* ${customerName}\n*Category:* ${categoryName || 'Manual'}\n*Amount:* ₹${amount}`;
+    } else {
+        // Default to Expense or generic
+        text = `Hello @here, a new ${type || 'expense'} has been added! \n*ID:* ${expense_id}\n*Reason:* ${reason}\n*Amount:* ₹${amount}`;
+        if (categoryName) text += `\n*Category:* ${categoryName}`;
+        if (paidBy) text += `\n*Paid By:* ${paidBy}`;
+    }
 
     const slackChannel = channel.startsWith('#') ? channel : `#${channel}`;
 

@@ -50,12 +50,17 @@ const createExpense = async (req, res, next) => {
     }
 
     const expense = await expenseService.createExpense(expenseData);
+    
+    // Populate category to get the name for Slack
+    await expense.populate('category', 'name');
 
     // Send Slack Notification
     sendSlackNotification({
       expense_id: expense._id,
       reason: expense.reason,
       amount: expense.amount,
+      categoryName: expense.category?.name,
+      paidBy: expense.paidBy,
       channel: process.env.SLACK_CHANNEL || 'carmaa-bills-update',
       type: 'Expense'
     }).catch(err => console.error('Slack notification failed:', err));

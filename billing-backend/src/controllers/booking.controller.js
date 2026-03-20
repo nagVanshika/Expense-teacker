@@ -1,8 +1,10 @@
 const bookingService = require('../services/booking.service');
 const ApiResponse = require('../utils/ApiResponse');
 const logger = require('../config/logger');
+const { sendSlackNotification } = require('../utils/slack');
 
 const getCollections = async (req, res, next) => {
+// ...
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -31,6 +33,22 @@ const getCollections = async (req, res, next) => {
 const createCollection = async (req, res, next) => {
   try {
     const booking = await bookingService.createBooking(req.body);
+
+    // Populate category to get the name for Slack
+    if (booking.category) {
+      await booking.populate('category', 'name');
+    }
+
+    // Send Slack Notification
+    sendSlackNotification({
+      expense_id: booking._id,
+      customerName: booking.customerName,
+      categoryName: booking.category?.name || 'Manual',
+      amount: booking.amount,
+      channel: process.env.SLACK_CHANNEL || 'carmaa-bills-update',
+      type: 'Collection'
+    }).catch(err => console.error('Slack notification failed for collection:', err));
+
     res.status(201).json({
       success: true,
       data: booking

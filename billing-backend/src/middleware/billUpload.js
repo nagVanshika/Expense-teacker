@@ -21,8 +21,24 @@ const storage = multerS3({
     cb(null, { fieldName: file.fieldname });
   },
   key: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const fileName = `bills/${uniqueSuffix}${path.extname(file.originalname)}`;
+    // req.body fields (categoryName, expenseDate) are available if they were appended BEFORE the file
+    const dateStr = req.body.expenseDate || new Date().toISOString().split('T')[0];
+    const category = (req.body.categoryName || 'General').replace(/\s+/g, '_');
+    
+    // Parse date for hierarchical structure
+    // dateStr is typically YYYY-MM-DD
+    const dateParts = dateStr.split('-');
+    const year = dateParts[0] || new Date().getFullYear().toString();
+    const month = dateParts[1] || (new Date().getMonth() + 1).toString().padStart(2, '0');
+    const day = dateParts[2] || new Date().getDate().toString().padStart(2, '0');
+
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e4);
+    const extension = path.extname(file.originalname);
+    const originalName = path.basename(file.originalname, extension).replace(/\s+/g, '_');
+    
+    // Convention: billing/year/month/day/category/filename
+    const fileName = `billing/${year}/${month}/${day}/${category}/${originalName}_${uniqueSuffix}${extension}`;
+    console.log('Generated S3 Key:', fileName);
     cb(null, fileName);
   },
 });

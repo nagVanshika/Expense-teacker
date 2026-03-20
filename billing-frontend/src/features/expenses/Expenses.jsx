@@ -136,6 +136,10 @@ const Expenses = () => {
     try {
       const data = new FormData();
       data.append('category', formData.category);
+      // Find category name to help S3 naming
+      const selectedCat = availableFilters.categories.find(c => c._id === formData.category);
+      if (selectedCat) data.append('categoryName', selectedCat.name);
+      
       data.append('reason', formData.reason);
       data.append('expenseDate', formData.expenseDate);
       data.append('paymentMode', formData.paymentMode);
