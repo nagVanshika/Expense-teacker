@@ -1,0 +1,8 @@
+{
+  "name": "carmaa-billing-root",
+  "private": true,
+  "scripts": {
+    "build": "npm run build --prefix billing-frontend",
+    "install": "npm install --prefix billing-frontend"
+  }
+}
