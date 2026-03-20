@@ -1,0 +1,28 @@
+# Dependency directories
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# IDE and OS files
+.DS_Store
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# Backend specific
+billing-backend/uploads/
+billing-backend/node_modules/
+
+# Frontend specific
+billing-frontend/node_modules/
+billing-frontend/dist/
